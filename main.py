@@ -37,6 +37,18 @@ def create_task(task:Task):
     tasks.append(new_task)
     return {"task": new_task}
 
+@app.put("/todo/api/v1.0/tasks/{task_id}")
+async def update_task(task_id: int, task_data: Task):
+    task = [task for task in tasks if task['id'] == task_id]
+    if len(task) == 0:
+        raise HTTPException(status_code=404, detail="Task not found")
+    task[0]['title'] = task_data.title
+    task[0]['description'] = task_data.description
+    task[0]['done'] = task_data.done
+
+    return {"task" : task}
+
+
 @app.middleware("http")
 async def validate_content_type(request, call_next):
     if request.method == 'POST':
