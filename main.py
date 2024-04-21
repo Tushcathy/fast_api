@@ -48,6 +48,14 @@ async def update_task(task_id: int, task_data: Task):
 
     return {"task" : task}
 
+@app.delete("/todo/api/v1.0/tasks/{task_id}")
+async def delete_task(task_id: int):
+    task = [task for task in tasks if task['id'] == task_id]
+    if len(task) == 0:
+        raise HTTPException(status_code=404, detail="Task not found")
+    
+    tasks.remove(task[0])
+    return {"result": True}
 
 @app.middleware("http")
 async def validate_content_type(request, call_next):
@@ -57,23 +65,3 @@ async def validate_content_type(request, call_next):
     
     response = await call_next(request)
     return response
-
-# @app.get("/")
-# async def root():
-#     return {"message": "Y'all are not ready!!!"}
-
-# @app.get("/items/{item_id}")
-# async def read_item(item_id: int):
-#     return {"item_id": item_id}
-
-@app.get("/users/me")
-async def read_user_me():
-    return {"user_id": "the current user"}
-
-# @app.get("/users/{user_id}")
-# async def read_user(user_id: str):
-#     return {"user_id": user_id} 
-
-# success - 2xx
-# client errors - 4xx
-# server errors - 5xx
