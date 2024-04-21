@@ -1,5 +1,4 @@
-from fastapi import FastAPI, HTTPException
-from typing import Optional
+from fastapi import FastAPI, HTTPException, Request
 from pydantic import BaseModel
 from tasks import tasks
 
@@ -12,13 +11,23 @@ class Task(BaseModel):
     description: str = ""
     done: bool = False
 
-@app.get("/todo/api/v1.0/tasks")
-async def get_tasks():
+def make_public_task(task: dict, request:Request):
+    new_task = {}
+    for field, value in task.items():
+        if field == "id":
+            url = str(request.url).rstrip('/')
+            new_task['uri'] = f"{url}/{task['id']}"
+        else:
+            new_task[field] = value
+    return new_task
 
-    return {'tasks': tasks}
+@app.get("/todo/api/v1.0/tasks")
+async def get_tasks(request: Request):
+
+    return {'tasks': [make_public_task(task, request) for task in tasks]}
 
 @app.get("/todo/api/v1.0/tasks/{task_id}")
-async def get_task(task_id: int):
+async def get_task(task_id: int, request:Request):
     task = [task for task in tasks if task['id'] == task_id]
     if len(task) == 0:
         raise HTTPException(status_code=404, detail="Item not found")
